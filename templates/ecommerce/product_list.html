@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Katalog Produk &mdash; Toko Administrasi{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Header & Filter Bar -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-bold font-mono text-neutral-100">Katalog Toko</h1>
+            <p class="text-xs font-mono text-neutral-400">Peralatan, lisensi software, dan perlengkapan teknis</p>
+        </div>
+
+        <!-- Search & Sort Forms -->
+        <form method="get" class="flex flex-wrap items-center gap-2">
+            {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category.slug }}">
+            {% endif %}
+            <div class="relative">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Cari nama produk..." class="px-3 py-1.5 text-xs font-mono bg-neutral-900 border border-neutral-700 rounded text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-400 w-44 sm:w-56">
+            </div>
+
+            <select name="sort" onchange="this.form.submit()" class="px-2.5 py-1.5 text-xs font-mono bg-neutral-900 border border-neutral-700 rounded text-neutral-300 focus:outline-none focus:border-neutral-400">
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Terbaru</option>
+                <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Harga Terendah</option>
+                <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Harga Tertinggi</option>
+            </select>
+
+            <button type="submit" class="px-3 py-1.5 text-xs font-mono bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded border border-neutral-700 transition">
+                Filter
+            </button>
+            {% if search_query or selected_category %}
+                <a href="{% url 'ecommerce:product_list' %}" class="text-xs font-mono text-neutral-500 hover:text-neutral-300 px-1">
+                    Reset
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+        <a href="{% url 'ecommerce:product_list' %}{% if search_query %}?q={{ search_query }}{% endif %}" class="px-3 py-1 rounded border {% if not selected_category %}bg-neutral-100 text-neutral-950 font-semibold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+            Semua ({{ products.count }})
+        </a>
+        {% for cat in categories %}
+            <a href="{% url 'ecommerce:product_list' %}?category={{ cat.slug }}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1 rounded border {% if selected_category.slug == cat.slug %}bg-neutral-100 text-neutral-950 font-semibold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+                {{ cat.name }}
+            </a>
+        {% endfor %}
+        <span class="ml-auto text-neutral-500">
+            <a href="{% url 'ecommerce:order_tracking' %}" class="hover:underline">Lacak Pesanan &rarr;</a>
+        </span>
+    </div>
+
+    <!-- Product Grid -->
+    {% if products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for prod in products %}
+                <div class="border border-neutral-800 bg-neutral-900/40 rounded-lg overflow-hidden flex flex-col justify-between hover:border-neutral-700 transition">
+                    <div>
+                        <!-- Product Image / Minimalist Placeholder -->
+                        <div class="w-full h-44 bg-neutral-900 border-b border-neutral-800 flex items-center justify-center relative overflow-hidden">
+                            {% if prod.image %}
+                                <img src="{{ prod.image.url }}" alt="{{ prod.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="flex flex-col items-center justify-center text-neutral-600 font-mono text-xs">
+                                    <svg class="w-8 h-8 mb-1 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                    <span>[Foto Produk]</span>
+                                </div>
+                            {% endif %}
+
+                            {% if not prod.in_stock %}
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-mono rounded bg-rose-950/80 text-rose-400 border border-rose-800">
+                                    Stok Habis
+                                </span>
+                            {% elif prod.stock <= 3 %}
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-mono rounded bg-amber-950/80 text-amber-300 border border-amber-800">
+                                    Sisa {{ prod.stock }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="p-4 space-y-2">
+                            {% if prod.category %}
+                                <span class="text-[10px] font-mono uppercase tracking-wider text-neutral-500">{{ prod.category.name }}</span>
+                            {% endif %}
+                            <h2 class="text-sm font-mono font-semibold text-neutral-100 hover:underline">
+                                <a href="{% url 'ecommerce:product_detail' prod.slug %}">{{ prod.name }}</a>
+                            </h2>
+                            <p class="text-xs text-neutral-400 line-clamp-2 leading-relaxed">
+                                {{ prod.description }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 pt-0 border-t border-neutral-800/60 mt-3">
+                        <div class="flex items-center justify-between pt-3">
+                            <div>
+                                <span class="text-xs text-neutral-500 font-mono block">Harga</span>
+                                <span class="text-sm font-mono font-bold text-neutral-100">
+                                    Rp {{ prod.price|floatformat:0 }}
+                                </span>
+                            </div>
+
+                            {% if prod.in_stock %}
+                                <form method="post" action="{% url 'ecommerce:cart_add' prod.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit" class="px-3 py-1.5 text-xs font-mono rounded bg-neutral-100 hover:bg-white text-neutral-950 font-medium transition flex items-center gap-1">
+                                        <span>+ Keranjang</span>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button disabled class="px-3 py-1.5 text-xs font-mono rounded bg-neutral-900 border border-neutral-800 text-neutral-600 cursor-not-allowed">
+                                    Habis
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="border border-neutral-800 bg-neutral-900/20 rounded-lg p-10 text-center space-y-2">
+            <p class="text-xs font-mono text-neutral-400">Tidak ada produk yang sesuai dengan kriteria.</p>
+            <a href="{% url 'ecommerce:product_list' %}" class="inline-block text-xs font-mono text-neutral-200 underline mt-2">
+                Lihat semua produk &rarr;
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

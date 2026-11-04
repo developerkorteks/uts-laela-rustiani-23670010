@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout & Pembayaran &mdash; Toko Administrasi{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <div class="border-b border-neutral-800 pb-4 flex items-center justify-between">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-bold font-mono text-neutral-100">Checkout Pesanan</h1>
+            <p class="text-xs font-mono text-neutral-400">Lengkapi data pengiriman dan pilih metode pembayaran</p>
+        </div>
+        <a href="{% url 'ecommerce:cart_detail' %}" class="text-xs font-mono text-neutral-400 hover:text-neutral-100">
+            &larr; Kembali ke Keranjang
+        </a>
+    </div>
+
+    <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {% csrf_token %}
+
+        <!-- Left Form: Shipping & Payment -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Data Penerima -->
+            <div class="border border-neutral-800 rounded-lg p-5 bg-neutral-900/40 space-y-4">
+                <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-400 border-b border-neutral-800 pb-2">
+                    1. Data Penerima & Pengiriman
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-neutral-300 mb-1">Nama Lengkap *</label>
+                        {{ form.customer_name }}
+                        {% if form.customer_name.errors %}
+                            <p class="text-xs text-rose-400 font-mono mt-1">{{ form.customer_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-neutral-300 mb-1">Nomor Telepon/WA *</label>
+                        {{ form.customer_phone }}
+                        {% if form.customer_phone.errors %}
+                            <p class="text-xs text-rose-400 font-mono mt-1">{{ form.customer_phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-neutral-300 mb-1">Email *</label>
+                    {{ form.customer_email }}
+                    {% if form.customer_email.errors %}
+                        <p class="text-xs text-rose-400 font-mono mt-1">{{ form.customer_email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-neutral-300 mb-1">Alamat Lengkap Pengiriman *</label>
+                    {{ form.shipping_address }}
+                    {% if form.shipping_address.errors %}
+                        <p class="text-xs text-rose-400 font-mono mt-1">{{ form.shipping_address.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-neutral-300 mb-1">Catatan Tambahan (Opsional)</label>
+                    {{ form.notes }}
+                </div>
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="border border-neutral-800 rounded-lg p-5 bg-neutral-900/40 space-y-4">
+                <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-400 border-b border-neutral-800 pb-2">
+                    2. Metode Pembayaran
+                </h2>
+
+                <div>
+                    <label class="block text-xs font-mono text-neutral-300 mb-1">Pilih Metode Pembayaran *</label>
+                    {{ form.payment_method }}
+                </div>
+
+                <div class="p-3 bg-neutral-950/60 rounded border border-neutral-800 text-[11px] font-mono text-neutral-400 space-y-1">
+                    <p class="font-semibold text-neutral-300">&bull; Transfer Bank Manual:</p>
+                    <p>Nomor rekening akan ditampilkan setelah pesanan dikonfirmasi.</p>
+                    <p class="font-semibold text-neutral-300 pt-1">&bull; QRIS / E-Wallet:</p>
+                    <p>Mendukung GoPay, OVO, Dana, ShopeePay, dan BCA QRIS.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right: Order Items Summary & Submit -->
+        <div class="border border-neutral-800 rounded-lg p-5 bg-neutral-900/60 space-y-4">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-400 border-b border-neutral-800 pb-2">
+                Item Pesanan ({{ cart|length }})
+            </h2>
+
+            <div class="divide-y divide-neutral-800/80 max-h-60 overflow-y-auto pr-1">
+                {% for item in items %}
+                    <div class="py-2.5 flex justify-between items-start text-xs font-mono">
+                        <div>
+                            <span class="font-semibold text-neutral-200 block">{{ item.product.name }}</span>
+                            <span class="text-neutral-500">{{ item.quantity }}x @ Rp {{ item.price|floatformat:0 }}</span>
+                        </div>
+                        <span class="font-semibold text-neutral-100 whitespace-nowrap">
+                            Rp {{ item.subtotal|floatformat:0 }}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="pt-3 border-t border-neutral-800 space-y-2 text-xs font-mono">
+                <div class="flex justify-between text-neutral-300">
+                    <span>Subtotal</span>
+                    <span>Rp {{ total_amount|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between text-neutral-400">
+                    <span>Ongkos Kirim</span>
+                    <span class="text-emerald-400">Rp 0 (Gratis)</span>
+                </div>
+                <div class="pt-2 border-t border-neutral-800 flex justify-between font-bold text-sm text-neutral-100">
+                    <span>Total Pembayaran</span>
+                    <span>Rp {{ total_amount|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <div class="pt-3">
+                <button type="submit" class="w-full py-2.5 px-4 rounded text-xs font-mono bg-neutral-100 text-neutral-950 font-bold hover:bg-white transition flex items-center justify-center gap-2">
+                    <span>Konfirmasi & Buat Pesanan</span>
+                    <span>&rarr;</span>
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

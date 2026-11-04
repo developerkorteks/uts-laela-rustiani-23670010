@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Administrasi Pesanan{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-4">
+        <div>
+            <h1 class="text-xl font-mono font-bold text-neutral-100">Dashboard Pesanan Pelanggan</h1>
+            <p class="text-xs font-mono text-neutral-400">Kelola dan perbarui status pesanan toko secara terpusat</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'ecommerce:product_list' %}" class="text-xs font-mono text-neutral-400 hover:text-white">
+                &larr; Lihat Toko Publik
+            </a>
+            <a href="/admin/ecommerce/order/" class="text-xs font-mono px-2.5 py-1 rounded bg-neutral-900 border border-neutral-700 text-neutral-300 hover:text-white">
+                Django Admin &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Tabs / Metrics Filter -->
+    <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+        <a href="{% url 'ecommerce:order_dashboard' %}" class="px-3 py-1.5 rounded border {% if not selected_status %}bg-neutral-100 text-neutral-950 font-bold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+            Semua ({{ status_counts.all }})
+        </a>
+        <a href="?status=pending" class="px-3 py-1.5 rounded border {% if selected_status == 'pending' %}bg-neutral-100 text-neutral-950 font-bold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+            Pending ({{ status_counts.pending }})
+        </a>
+        <a href="?status=paid" class="px-3 py-1.5 rounded border {% if selected_status == 'paid' %}bg-neutral-100 text-neutral-950 font-bold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+            Dibayar ({{ status_counts.paid }})
+        </a>
+        <a href="?status=shipped" class="px-3 py-1.5 rounded border {% if selected_status == 'shipped' %}bg-neutral-100 text-neutral-950 font-bold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+            Dikirim ({{ status_counts.shipped }})
+        </a>
+        <a href="?status=completed" class="px-3 py-1.5 rounded border {% if selected_status == 'completed' %}bg-neutral-100 text-neutral-950 font-bold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+            Selesai ({{ status_counts.completed }})
+        </a>
+        <a href="?status=cancelled" class="px-3 py-1.5 rounded border {% if selected_status == 'cancelled' %}bg-neutral-100 text-neutral-950 font-bold border-neutral-100{% else %}bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200{% endif %} transition">
+            Dibatalkan ({{ status_counts.cancelled }})
+        </a>
+    </div>
+
+    <!-- Orders Table -->
+    {% if orders %}
+        <div class="border border-neutral-800 rounded-lg overflow-hidden bg-neutral-900/40">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead class="bg-neutral-900 border-b border-neutral-800 text-neutral-400 uppercase">
+                        <tr>
+                            <th class="p-3.5">No. Pesanan</th>
+                            <th class="p-3.5">Pelanggan</th>
+                            <th class="p-3.5">Total Tagihan</th>
+                            <th class="p-3.5">Metode Bayar</th>
+                            <th class="p-3.5">Status</th>
+                            <th class="p-3.5">Ubah Status</th>
+                            <th class="p-3.5 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-neutral-800/80 text-neutral-200">
+                        {% for ord in orders %}
+                            <tr class="hover:bg-neutral-900/60 transition">
+                                <td class="p-3.5">
+                                    <span class="font-bold text-neutral-100 block">{{ ord.order_number }}</span>
+                                    <span class="text-[10px] text-neutral-500">{{ ord.created_at|date:"d/m/Y H:i" }}</span>
+                                </td>
+                                <td class="p-3.5">
+                                    <div class="font-semibold text-neutral-100">{{ ord.customer_name }}</div>
+                                    <div class="text-[11px] text-neutral-400">{{ ord.customer_phone }}</div>
+                                    <div class="text-[10px] text-neutral-500 truncate max-w-xs">{{ ord.shipping_address }}</div>
+                                </td>
+                                <td class="p-3.5 whitespace-nowrap font-bold text-neutral-100">
+                                    Rp {{ ord.total_amount|floatformat:0 }}
+                                </td>
+                                <td class="p-3.5">
+                                    <span class="text-[11px] text-neutral-300">{{ ord.get_payment_method_display }}</span>
+                                </td>
+                                <td class="p-3.5 whitespace-nowrap">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold
+                                        {% if ord.status == 'completed' %}bg-emerald-950 text-emerald-400 border border-emerald-800
+                                        {% elif ord.status == 'shipped' %}bg-blue-950 text-blue-400 border border-blue-800
+                                        {% elif ord.status == 'paid' %}bg-purple-950 text-purple-400 border border-purple-800
+                                        {% elif ord.status == 'cancelled' %}bg-rose-950 text-rose-400 border border-rose-800
+                                        {% else %}bg-amber-950 text-amber-300 border border-amber-800{% endif %}">
+                                        {{ ord.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="p-3.5">
+                                    <form method="post" action="{% url 'ecommerce:order_update_status' ord.id %}" class="flex items-center gap-1.5">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <select name="status" onchange="this.form.submit()" class="px-2 py-1 text-[11px] font-mono bg-neutral-950 border border-neutral-700 rounded text-neutral-200">
+                                            {% for val, label in status_choices %}
+                                                <option value="{{ val }}" {% if ord.status == val %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </form>
+                                </td>
+                                <td class="p-3.5 text-right whitespace-nowrap space-x-2">
+                                    <a href="{% url 'ecommerce:order_invoice' ord.order_number %}" target="_blank" class="text-neutral-400 hover:text-white underline">
+                                        Invoice
+                                    </a>
+                                    <a href="/admin/ecommerce/order/{{ ord.id }}/change/" class="text-neutral-500 hover:text-neutral-300">
+                                        Edit
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="border border-neutral-800 bg-neutral-900/20 rounded-lg p-10 text-center space-y-2">
+            <p class="text-xs font-mono text-neutral-400">Tidak ada pesanan dengan status yang dipilih.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

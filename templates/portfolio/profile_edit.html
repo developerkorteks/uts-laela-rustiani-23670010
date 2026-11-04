@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Edit Profil Dinamis{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-4">
+        <div>
+            <h1 class="text-xl font-mono font-bold text-neutral-100">Manajemen Profil Dinamis</h1>
+            <p class="text-xs font-mono text-neutral-400">Kelola identitas, keahlian, pengalaman, dan proyek langsung dari web</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'portfolio:index' %}" class="text-xs font-mono text-neutral-400 hover:text-neutral-100">
+                &larr; Lihat Profil Publik
+            </a>
+            <a href="/admin/portfolio/profile/" class="text-xs font-mono px-2.5 py-1 rounded bg-neutral-900 border border-neutral-700 text-neutral-300 hover:text-white">
+                Django Admin &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- Sub-Nav Navigation Tabs -->
+    <div class="flex border-b border-neutral-800 text-xs font-mono space-x-1">
+        <a href="?tab=bio" class="px-4 py-2 border-b-2 font-medium transition {% if active_tab == 'bio' %}border-neutral-100 text-neutral-100 bg-neutral-900/40{% else %}border-transparent text-neutral-400 hover:text-neutral-200{% endif %}">
+            1. Biodata & Kontak
+        </a>
+        <a href="?tab=skills" class="px-4 py-2 border-b-2 font-medium transition {% if active_tab == 'skills' %}border-neutral-100 text-neutral-100 bg-neutral-900/40{% else %}border-transparent text-neutral-400 hover:text-neutral-200{% endif %}">
+            2. Keahlian ({{ skills.count }})
+        </a>
+        <a href="?tab=experiences" class="px-4 py-2 border-b-2 font-medium transition {% if active_tab == 'experiences' %}border-neutral-100 text-neutral-100 bg-neutral-900/40{% else %}border-transparent text-neutral-400 hover:text-neutral-200{% endif %}">
+            3. Pengalaman ({{ experiences.count }})
+        </a>
+        <a href="?tab=projects" class="px-4 py-2 border-b-2 font-medium transition {% if active_tab == 'projects' %}border-neutral-100 text-neutral-100 bg-neutral-900/40{% else %}border-transparent text-neutral-400 hover:text-neutral-200{% endif %}">
+            4. Portofolio ({{ projects.count }})
+        </a>
+    </div>
+
+    <!-- TAB 1: BIODATA & KONTAK -->
+    {% if active_tab == 'bio' %}
+        <form method="post" enctype="multipart/form-data" class="space-y-4 border border-neutral-800 bg-neutral-900/40 p-6 rounded-lg font-mono">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="profile">
+
+            {% for field in form %}
+                <div>
+                    <label class="block text-xs text-neutral-300 mb-1 font-medium">
+                        {{ field.label }}
+                        {% if field.field.required %}<span class="text-rose-400">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="text-[11px] text-neutral-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                        <p class="text-xs text-rose-400 mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="pt-4 border-t border-neutral-800 flex items-center justify-between">
+                <button type="submit" class="px-5 py-2 rounded text-xs bg-neutral-100 text-neutral-950 font-bold hover:bg-white transition">
+                    Simpan Biodata
+                </button>
+            </div>
+        </form>
+
+    <!-- TAB 2: KEAHLIAN / SKILLS -->
+    {% elif active_tab == 'skills' %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+            <!-- Add Skill Form -->
+            <div class="border border-neutral-800 bg-neutral-900/50 p-5 rounded-lg space-y-4">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-300 border-b border-neutral-800 pb-2">+ Tambah Keahlian</h2>
+                <form method="post" action="{% url 'portfolio:skill_create' %}" class="space-y-3">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Nama Keahlian *</label>
+                        {{ skill_form.name }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Kategori *</label>
+                        {{ skill_form.category }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Urutan (Order)</label>
+                        {{ skill_form.order }}
+                    </div>
+                    <button type="submit" class="w-full py-2 px-3 rounded bg-neutral-100 text-neutral-950 font-bold hover:bg-white transition">
+                        Simpan Keahlian
+                    </button>
+                </form>
+            </div>
+
+            <!-- List Existing Skills -->
+            <div class="md:col-span-2 border border-neutral-800 bg-neutral-900/30 rounded-lg p-5 space-y-3">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-800 pb-2">Daftar Keahlian Aktif</h2>
+                <div class="divide-y divide-neutral-800/80">
+                    {% for skill in skills %}
+                        <div class="py-2.5 flex items-center justify-between">
+                            <div>
+                                <span class="font-semibold text-neutral-200">{{ skill.name }}</span>
+                                <span class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400">{{ skill.get_category_display }}</span>
+                            </div>
+                            <form method="post" action="{% url 'portfolio:skill_delete' skill.id %}">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('Hapus keahlian {{ skill.name }}?')" class="text-rose-400 hover:text-rose-300">
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p class="text-neutral-500 py-4">Belum ada keahlian ditambahkan.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    <!-- TAB 3: PENGALAMAN KERJA -->
+    {% elif active_tab == 'experiences' %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+            <!-- Add Experience Form -->
+            <div class="border border-neutral-800 bg-neutral-900/50 p-5 rounded-lg space-y-4">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-300 border-b border-neutral-800 pb-2">+ Tambah Pengalaman</h2>
+                <form method="post" action="{% url 'portfolio:experience_create' %}" class="space-y-3">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Peran / Role *</label>
+                        {{ experience_form.role }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Perusahaan *</label>
+                        {{ experience_form.company }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Periode *</label>
+                        {{ experience_form.period }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Deskripsi Singkat</label>
+                        {{ experience_form.description }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Urutan (Order)</label>
+                        {{ experience_form.order }}
+                    </div>
+                    <button type="submit" class="w-full py-2 px-3 rounded bg-neutral-100 text-neutral-950 font-bold hover:bg-white transition">
+                        Simpan Pengalaman
+                    </button>
+                </form>
+            </div>
+
+            <!-- List Existing Experiences -->
+            <div class="md:col-span-2 border border-neutral-800 bg-neutral-900/30 rounded-lg p-5 space-y-3">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-800 pb-2">Riwayat Pengalaman</h2>
+                <div class="divide-y divide-neutral-800/80">
+                    {% for exp in experiences %}
+                        <div class="py-3 flex items-start justify-between gap-4">
+                            <div>
+                                <span class="font-bold text-neutral-200">{{ exp.role }}</span>
+                                <span class="text-neutral-400"> di {{ exp.company }}</span>
+                                <span class="block text-[10px] text-neutral-500">{{ exp.period }}</span>
+                                {% if exp.description %}
+                                    <p class="text-neutral-400 mt-1 font-sans text-xs">{{ exp.description }}</p>
+                                {% endif %}
+                            </div>
+                            <form method="post" action="{% url 'portfolio:experience_delete' exp.id %}">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('Hapus pengalaman ini?')" class="text-rose-400 hover:text-rose-300">
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p class="text-neutral-500 py-4">Belum ada pengalaman kerja ditambahkan.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    <!-- TAB 4: PORTOFOLIO PROYEK -->
+    {% elif active_tab == 'projects' %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+            <!-- Add Project Form -->
+            <div class="border border-neutral-800 bg-neutral-900/50 p-5 rounded-lg space-y-4">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-300 border-b border-neutral-800 pb-2">+ Tambah Proyek</h2>
+                <form method="post" enctype="multipart/form-data" action="{% url 'portfolio:project_create' %}" class="space-y-3">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Judul Proyek *</label>
+                        {{ project_form.title }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Tech Stack *</label>
+                        {{ project_form.tech_stack }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Deskripsi *</label>
+                        {{ project_form.description }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Demo URL</label>
+                        {{ project_form.demo_url }}
+                    </div>
+                    <div>
+                        <label class="block text-neutral-400 mb-1">Repo URL</label>
+                        {{ project_form.repo_url }}
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                        {{ project_form.is_featured }}
+                        <label class="text-neutral-300">Tampilkan sebagai Unggulan (Featured)</label>
+                    </div>
+                    <button type="submit" class="w-full py-2 px-3 rounded bg-neutral-100 text-neutral-950 font-bold hover:bg-white transition">
+                        Simpan Proyek
+                    </button>
+                </form>
+            </div>
+
+            <!-- List Existing Projects -->
+            <div class="md:col-span-2 border border-neutral-800 bg-neutral-900/30 rounded-lg p-5 space-y-3">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-800 pb-2">Daftar Proyek Portofolio</h2>
+                <div class="divide-y divide-neutral-800/80">
+                    {% for proj in projects %}
+                        <div class="py-3 flex items-start justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-neutral-200">{{ proj.title }}</span>
+                                    {% if proj.is_featured %}
+                                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-300">Featured</span>
+                                    {% endif %}
+                                </div>
+                                <span class="block text-[11px] text-neutral-400">{{ proj.tech_stack }}</span>
+                                <p class="text-neutral-500 mt-1 line-clamp-2 text-xs font-sans">{{ proj.description }}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'portfolio:project_detail' proj.slug %}" class="text-neutral-400 hover:text-white underline">Lihat</a>
+                                <form method="post" action="{% url 'portfolio:project_delete' proj.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('Hapus proyek {{ proj.title }}?')" class="text-rose-400 hover:text-rose-300">
+                                        Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-neutral-500 py-4">Belum ada proyek portofolio.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

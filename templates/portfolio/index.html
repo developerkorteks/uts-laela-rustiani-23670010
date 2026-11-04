@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile.full_name }} &mdash; {{ profile.title }}{% endblock %}
+
+{% block content %}
+<div class="space-y-16 max-w-4xl mx-auto">
+
+    <!-- 1. HERO SECTION -->
+    <section class="border border-neutral-800 bg-neutral-900/40 rounded-lg p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div class="space-y-3 flex-1">
+                <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-mono bg-emerald-950/60 text-emerald-400 border border-emerald-800/60">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Tersedia untuk proyek & kolaborasi
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-100 font-mono">
+                    {{ profile.full_name }}
+                </h1>
+                <p class="text-sm sm:text-base text-neutral-400 font-mono">
+                    {{ profile.title }}
+                </p>
+                <p class="text-xs sm:text-sm text-neutral-300 leading-relaxed pt-1">
+                    {{ profile.short_bio }}
+                </p>
+
+                <!-- Quick Metadata -->
+                <div class="flex flex-wrap gap-4 text-xs font-mono text-neutral-400 pt-2">
+                    {% if profile.location %}
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            {{ profile.location }}
+                        </span>
+                    {% endif %}
+                    {% if profile.email %}
+                        <a href="mailto:{{ profile.email }}" class="hover:text-neutral-200 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            {{ profile.email }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Avatar / Photo or Minimalist Badge -->
+            <div class="shrink-0 flex flex-col items-center gap-3">
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="{{ profile.full_name }}" class="w-24 h-24 sm:w-28 sm:h-28 rounded-md object-cover border border-neutral-700">
+                {% else %}
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-md border border-neutral-700 bg-neutral-900 flex items-center justify-center font-mono text-2xl font-semibold text-neutral-400">
+                        {{ profile.full_name|slice:":2"|upper }}
+                    </div>
+                {% endif %}
+
+                {% if profile.resume_file %}
+                    <a href="{{ profile.resume_file.url }}" target="_blank" class="text-[11px] font-mono px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded border border-neutral-700 transition">
+                        Unduh CV (.pdf)
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Social Links & Action -->
+        <div class="mt-6 pt-5 border-t border-neutral-800/80 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3 text-xs font-mono">
+                {% if profile.github_url %}
+                    <a href="{{ profile.github_url }}" target="_blank" rel="noopener" class="text-neutral-400 hover:text-neutral-100 transition underline underline-offset-4">
+                        GitHub &rarr;
+                    </a>
+                {% endif %}
+                {% if profile.linkedin_url %}
+                    <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener" class="text-neutral-400 hover:text-neutral-100 transition underline underline-offset-4">
+                        LinkedIn &rarr;
+                    </a>
+                {% endif %}
+                <a href="#contact" class="text-neutral-400 hover:text-neutral-100 transition underline underline-offset-4">
+                    Kirim Pesan &darr;
+                </a>
+            </div>
+
+            {% if user.is_staff %}
+                <div class="text-xs font-mono">
+                    <a href="{% url 'portfolio:edit' %}" class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-950/60 text-amber-300 border border-amber-800 rounded hover:bg-amber-900/60 transition">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Edit Profil Dinamis
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- 2. TENTANG SAYA -->
+    <section class="space-y-4">
+        <div class="border-b border-neutral-800 pb-2">
+            <h2 class="text-sm font-mono uppercase tracking-widest text-neutral-400">Tentang Saya</h2>
+        </div>
+        <div class="text-sm text-neutral-300 leading-relaxed whitespace-pre-line bg-neutral-900/20 p-5 rounded-lg border border-neutral-900">
+            {{ profile.about }}
+        </div>
+    </section>
+
+    <!-- 3. KEAHLIAN / SKILLS -->
+    <section class="space-y-4">
+        <div class="border-b border-neutral-800 pb-2 flex justify-between items-center">
+            <h2 class="text-sm font-mono uppercase tracking-widest text-neutral-400">Keahlian Teknis</h2>
+            {% if user.is_staff %}
+                <a href="/admin/portfolio/skill/" class="text-xs font-mono text-neutral-500 hover:text-neutral-300">+ Kelola Skills</a>
+            {% endif %}
+        </div>
+        {% if skills_by_category %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for category, skill_list in skills_by_category.items %}
+                    <div class="p-4 border border-neutral-800/80 bg-neutral-900/30 rounded-lg">
+                        <h3 class="text-xs font-mono text-neutral-400 uppercase tracking-wider mb-2.5 font-medium">{{ category }}</h3>
+                        <div class="flex flex-wrap gap-1.5">
+                            {% for skill in skill_list %}
+                                <span class="px-2.5 py-1 text-xs font-mono rounded bg-neutral-800 text-neutral-200 border border-neutral-700/60">
+                                    {{ skill }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-xs font-mono text-neutral-500 py-3">Belum ada keahlian terdaftar. (Dapat ditambahkan melalui admin panel).</p>
+        {% endif %}
+    </section>
+
+    <!-- 4. PENGALAMAN KERJA -->
+    <section class="space-y-4">
+        <div class="border-b border-neutral-800 pb-2 flex justify-between items-center">
+            <h2 class="text-sm font-mono uppercase tracking-widest text-neutral-400">Pengalaman & Karir</h2>
+            {% if user.is_staff %}
+                <a href="/admin/portfolio/experience/" class="text-xs font-mono text-neutral-500 hover:text-neutral-300">+ Kelola Pengalaman</a>
+            {% endif %}
+        </div>
+        {% if experiences %}
+            <div class="divide-y divide-neutral-900 border border-neutral-800/80 rounded-lg overflow-hidden bg-neutral-900/30">
+                {% for exp in experiences %}
+                    <div class="p-4 sm:p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                            <div>
+                                <h3 class="font-mono text-sm font-semibold text-neutral-200">{{ exp.role }}</h3>
+                                <p class="text-xs font-mono text-neutral-400">{{ exp.company }}</p>
+                            </div>
+                            <span class="text-xs font-mono text-neutral-500">{{ exp.period }}</span>
+                        </div>
+                        {% if exp.description %}
+                            <p class="text-xs text-neutral-300 leading-relaxed mt-2 whitespace-pre-line">{{ exp.description }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-xs font-mono text-neutral-500 py-3">Belum ada riwayat pengalaman.</p>
+        {% endif %}
+    </section>
+
+    <!-- 5. PORTOFOLIO PROYEK -->
+    <section class="space-y-4">
+        <div class="border-b border-neutral-800 pb-2 flex justify-between items-center">
+            <h2 class="text-sm font-mono uppercase tracking-widest text-neutral-400">Proyek Unggulan</h2>
+            {% if user.is_staff %}
+                <a href="/admin/portfolio/project/" class="text-xs font-mono text-neutral-500 hover:text-neutral-300">+ Kelola Proyek</a>
+            {% endif %}
+        </div>
+
+        {% if projects %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for proj in projects %}
+                    <div class="border border-neutral-800 bg-neutral-900/40 rounded-lg p-5 flex flex-col justify-between hover:border-neutral-700 transition">
+                        <div class="space-y-2.5">
+                            <div class="flex items-start justify-between gap-2">
+                                <h3 class="font-mono text-sm font-semibold text-neutral-100">
+                                    <a href="{% url 'portfolio:project_detail' proj.slug %}" class="hover:underline">
+                                        {{ proj.title }}
+                                    </a>
+                                </h3>
+                                {% if proj.is_featured %}
+                                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300 border border-neutral-700">
+                                        Featured
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="text-xs text-neutral-400 line-clamp-3 leading-relaxed">
+                                {{ proj.description }}
+                            </p>
+
+                            <div class="flex flex-wrap gap-1 pt-1">
+                                {% for tech in proj.tech_list %}
+                                    <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-neutral-950 text-neutral-400 border border-neutral-800">
+                                        {{ tech }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs font-mono text-neutral-400">
+                            <a href="{% url 'portfolio:project_detail' proj.slug %}" class="hover:text-neutral-100">
+                                Detail &rarr;
+                            </a>
+                            <div class="flex items-center gap-3">
+                                {% if proj.repo_url %}
+                                    <a href="{{ proj.repo_url }}" target="_blank" rel="noopener" class="hover:text-neutral-100">Repo</a>
+                                {% endif %}
+                                {% if proj.demo_url %}
+                                    <a href="{{ proj.demo_url }}" target="_blank" rel="noopener" class="hover:text-neutral-100">Live Demo</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-xs font-mono text-neutral-500 py-3">Belum ada proyek portofolio.</p>
+        {% endif %}
+    </section>
+
+    <!-- 6. FORMULIR KONTAK -->
+    <section id="contact" class="space-y-4 pt-4">
+        <div class="border-b border-neutral-800 pb-2">
+            <h2 class="text-sm font-mono uppercase tracking-widest text-neutral-400">Hubungi Saya</h2>
+        </div>
+
+        <div class="border border-neutral-800 bg-neutral-900/30 rounded-lg p-6">
+            <form method="post" action="{% url 'portfolio:index' %}#contact" class="space-y-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-neutral-400 mb-1">Nama Lengkap *</label>
+                        {{ contact_form.name }}
+                        {% if contact_form.name.errors %}
+                            <p class="text-xs text-rose-400 font-mono mt-1">{{ contact_form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-neutral-400 mb-1">Email *</label>
+                        {{ contact_form.email }}
+                        {% if contact_form.email.errors %}
+                            <p class="text-xs text-rose-400 font-mono mt-1">{{ contact_form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-neutral-400 mb-1">Subjek *</label>
+                    {{ contact_form.subject }}
+                    {% if contact_form.subject.errors %}
+                        <p class="text-xs text-rose-400 font-mono mt-1">{{ contact_form.subject.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-neutral-400 mb-1">Pesan *</label>
+                    {{ contact_form.message }}
+                    {% if contact_form.message.errors %}
+                        <p class="text-xs text-rose-400 font-mono mt-1">{{ contact_form.message.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="px-5 py-2 rounded text-xs font-mono bg-neutral-100 hover:bg-white text-neutral-950 font-medium transition flex items-center gap-2">
+                        <span>Kirim Pesan</span>
+                        <span>&rarr;</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

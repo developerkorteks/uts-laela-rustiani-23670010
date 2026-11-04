@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-neutral-950 text-neutral-100 antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistem Administrasi{% endblock %}</title>
+    <!-- Tailwind CSS (via official modern CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom minimal scrollbar & crisp details */
+        ::selection { background: #3b82f6; color: #ffffff; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #404040; }
+    </style>
+</head>
+<body class="min-h-full flex flex-col font-sans bg-neutral-950 text-neutral-200 selection:bg-neutral-800">
+    <!-- Header / Navigation Minimalis -->
+    <header class="sticky top-0 z-40 w-full border-b border-neutral-800 bg-neutral-950/90 backdrop-blur">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <a href="{% url 'portfolio:index' %}" class="font-mono text-sm tracking-tight text-neutral-100 font-semibold hover:text-white flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                    administrasi-server
+                </a>
+                <nav class="hidden sm:flex items-center space-x-4 text-xs font-mono uppercase tracking-wider text-neutral-400">
+                    <a href="{% url 'portfolio:index' %}" class="hover:text-neutral-100 transition py-1 {% if request.resolver_match.app_name == 'portfolio' and not 'ecommerce' in request.path %}text-neutral-100 border-b border-neutral-100{% endif %}">Profil Pribadi</a>
+                    <a href="{% url 'ecommerce:product_list' %}" class="hover:text-neutral-100 transition py-1 {% if request.resolver_match.app_name == 'ecommerce' and not 'dashboard' in request.path %}text-neutral-100 border-b border-neutral-100{% endif %}">Katalog Toko</a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'ecommerce:order_dashboard' %}" class="hover:text-neutral-100 transition py-1 {% if 'dashboard' in request.path %}text-neutral-100 border-b border-neutral-100{% endif %}">Kelola Pesanan</a>
+                    {% endif %}
+                </nav>
+            </div>
+
+            <div class="flex items-center space-x-4 text-xs font-mono">
+                <a href="{% url 'ecommerce:cart_detail' %}" class="flex items-center gap-1.5 px-2.5 py-1 rounded border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 transition">
+                    <span>Keranjang</span>
+                    <span class="px-1.5 py-0.2 bg-neutral-800 text-neutral-300 rounded font-semibold text-[10px]">
+                        {{ cart_total_items|default:0 }}
+                    </span>
+                </a>
+
+                {% if user.is_staff %}
+                    <a href="{% url 'portfolio:edit' %}" class="hidden md:inline-block px-2.5 py-1 rounded border border-neutral-800 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 transition">
+                        Edit Profil
+                    </a>
+                    <a href="{% url 'ecommerce:order_dashboard' %}" class="hidden lg:inline-block px-2.5 py-1 rounded border border-neutral-800 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 transition">
+                        Pesanan
+                    </a>
+                {% endif %}
+
+                <a href="/admin/" class="px-2.5 py-1 rounded border border-neutral-700 bg-neutral-100 text-neutral-950 font-medium hover:bg-white transition">
+                    Admin Panel
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Messages Notification -->
+    {% if messages %}
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4 w-full">
+            {% for message in messages %}
+                <div class="p-3 mb-3 text-xs font-mono rounded border {% if message.tags == 'success' %}bg-emerald-950/50 text-emerald-300 border-emerald-800{% elif message.tags == 'error' %}bg-rose-950/50 text-rose-300 border-rose-800{% else %}bg-neutral-900 text-neutral-300 border-neutral-800{% endif %} flex justify-between items-center">
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer Minimalis -->
+    <footer class="border-t border-neutral-800 py-6 mt-12 bg-neutral-950 text-xs font-mono text-neutral-500">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <span>administrasi-server &copy; {% now "Y" %} &middot; Django + Python 3.11</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'portfolio:index' %}" class="hover:text-neutral-300">Profil</a>
+                <a href="{% url 'ecommerce:product_list' %}" class="hover:text-neutral-300">Ecommerce</a>
+                <a href="/admin/" class="hover:text-neutral-300">Django Admin</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

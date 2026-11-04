@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Pesanan {{ order.order_number }} Berhasil{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <div class="border border-emerald-800/80 bg-emerald-950/20 rounded-lg p-6 sm:p-8 text-center space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-full bg-emerald-950 border border-emerald-700 flex items-center justify-center text-emerald-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold font-mono text-neutral-100">Pesanan Berhasil Dibuat</h1>
+        <p class="text-xs font-mono text-neutral-400">
+            Terima kasih! Pesanan Anda telah tersimpan dalam sistem kami.
+        </p>
+
+        <div class="inline-block px-4 py-2 mt-2 rounded bg-neutral-900 border border-neutral-700 text-sm font-mono text-neutral-200">
+            Nomor Pesanan: <strong class="text-white">{{ order.order_number }}</strong>
+        </div>
+    </div>
+
+    <!-- Payment Instructions & Details -->
+    <div class="border border-neutral-800 rounded-lg p-5 bg-neutral-900/40 space-y-4 font-mono text-xs">
+        <h2 class="uppercase tracking-widest text-neutral-400 border-b border-neutral-800 pb-2">
+            Instruksi Pembayaran & Rincian
+        </h2>
+
+        <div class="p-3 bg-neutral-950 border border-neutral-800 rounded space-y-2">
+            <div class="flex justify-between">
+                <span class="text-neutral-400">Metode Pembayaran:</span>
+                <span class="text-neutral-200 font-semibold">{{ order.get_payment_method_display }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-neutral-400">Total Tagihan:</span>
+                <span class="text-emerald-400 font-bold text-sm">Rp {{ order.total_amount|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-neutral-400">Status Saat Ini:</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-amber-950/80 text-amber-300 border border-amber-800">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        {% if order.payment_method == 'transfer' %}
+            <div class="p-4 bg-neutral-950 rounded border border-neutral-800 space-y-2 text-neutral-300 text-xs">
+                <p class="font-semibold text-neutral-100">Transfer ke Rekening Bank Admin:</p>
+                <div class="space-y-1">
+                    <p>&bull; <strong>Bank BCA:</strong> 123-456-7890 a.n. Administrasi Server</p>
+                    <p>&bull; <strong>Bank Mandiri:</strong> 987-654-3210 a.n. Administrasi Server</p>
+                </div>
+                <p class="text-[11px] text-neutral-500 pt-1">
+                    Sertakan nomor pesanan <strong>{{ order.order_number }}</strong> pada berita transfer.
+                </p>
+            </div>
+        {% elif order.payment_method == 'qris' %}
+            <div class="p-4 bg-neutral-950 rounded border border-neutral-800 text-center space-y-2">
+                <p class="font-semibold text-neutral-200 text-xs">Scan QRIS Nasional untuk Menyelesaikan Pembayaran:</p>
+                <div class="w-36 h-36 mx-auto bg-white p-2 rounded flex items-center justify-center text-neutral-950 font-bold text-xs">
+                    [Simulasi QRIS]
+                </div>
+                <p class="text-[11px] text-neutral-500">Mendukung semua aplikasi perbankan & dompet digital.</p>
+            </div>
+        {% endif %}
+
+        <!-- Order Items -->
+        <div class="space-y-2 pt-2">
+            <h3 class="text-neutral-400 font-semibold">Rincian Barang yang Dipesan:</h3>
+            <div class="divide-y divide-neutral-800/80 border border-neutral-800 rounded px-3 bg-neutral-950/40">
+                {% for item in order.items.all %}
+                    <div class="py-2 flex justify-between">
+                        <span>{{ item.quantity }}x {{ item.product_name }}</span>
+                        <span class="font-semibold">Rp {{ item.subtotal|floatformat:0 }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Destination -->
+        <div class="pt-2 text-neutral-400 space-y-1">
+            <p><span class="text-neutral-500">Penerima:</span> {{ order.customer_name }} ({{ order.customer_phone }})</p>
+            <p><span class="text-neutral-500">Alamat Kirim:</span> {{ order.shipping_address }}</p>
+        </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 font-mono text-xs">
+        <a href="{% url 'ecommerce:order_tracking' %}?order_number={{ order.order_number }}" class="text-neutral-300 hover:text-white underline">
+            Lacak Status Pesanan Ini &rarr;
+        </a>
+        <a href="{% url 'ecommerce:product_list' %}" class="px-4 py-2 rounded bg-neutral-100 text-neutral-950 font-semibold hover:bg-white transition">
+            Kembali ke Toko
+        </a>
+    </div>
+
+</div>
+{% endblock %}

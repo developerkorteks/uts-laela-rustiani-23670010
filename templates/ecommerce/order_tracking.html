@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Lacak Pesanan &mdash; Toko Administrasi{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-8">
+
+    <div class="border-b border-neutral-800 pb-4">
+        <h1 class="text-xl sm:text-2xl font-bold font-mono text-neutral-100">Pelacakan Pesanan</h1>
+        <p class="text-xs font-mono text-neutral-400">Masukkan nomor pesanan Anda untuk memantau status terkini</p>
+    </div>
+
+    <!-- Search Form -->
+    <form method="get" class="border border-neutral-800 bg-neutral-900/40 p-5 rounded-lg space-y-3 font-mono">
+        <label class="block text-xs text-neutral-300">Nomor Pesanan</label>
+        <div class="flex gap-2">
+            {{ form.order_number }}
+            <button type="submit" class="px-5 py-2 rounded text-xs bg-neutral-100 text-neutral-950 font-bold hover:bg-white transition whitespace-nowrap">
+                Lacak
+            </button>
+        </div>
+        {% if form.order_number.errors %}
+            <p class="text-xs text-rose-400 font-mono">{{ form.order_number.errors.0 }}</p>
+        {% endif %}
+    </form>
+
+    <!-- Tracking Result -->
+    {% if order %}
+        <div class="border border-neutral-800 bg-neutral-900/40 rounded-lg p-6 space-y-6 font-mono text-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-4">
+                <div>
+                    <h2 class="text-base font-bold text-neutral-100">{{ order.order_number }}</h2>
+                    <span class="text-neutral-500">Dibuat pada: {{ order.created_at|date:"d M Y, H:i" }}</span>
+                </div>
+                <div>
+                    <span class="px-3 py-1 rounded text-xs font-semibold
+                        {% if order.status == 'completed' %}bg-emerald-950 text-emerald-400 border border-emerald-800
+                        {% elif order.status == 'shipped' %}bg-blue-950 text-blue-400 border border-blue-800
+                        {% elif order.status == 'paid' %}bg-purple-950 text-purple-400 border border-purple-800
+                        {% elif order.status == 'cancelled' %}bg-rose-950 text-rose-400 border border-rose-800
+                        {% else %}bg-amber-950 text-amber-300 border border-amber-800{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Visual Progress Status -->
+            <div class="grid grid-cols-4 gap-2 text-center text-[10px]">
+                <div class="p-2 rounded border {% if order.status != 'cancelled' %}bg-neutral-800 text-neutral-200 border-neutral-700{% else %}bg-neutral-900 text-neutral-600 border-neutral-800{% endif %}">
+                    1. Pending
+                </div>
+                <div class="p-2 rounded border {% if order.status in 'paid,shipped,completed' %}bg-neutral-800 text-neutral-200 border-neutral-700{% else %}bg-neutral-900 text-neutral-600 border-neutral-800{% endif %}">
+                    2. Dibayar
+                </div>
+                <div class="p-2 rounded border {% if order.status in 'shipped,completed' %}bg-neutral-800 text-neutral-200 border-neutral-700{% else %}bg-neutral-900 text-neutral-600 border-neutral-800{% endif %}">
+                    3. Dikirim
+                </div>
+                <div class="p-2 rounded border {% if order.status == 'completed' %}bg-emerald-950 text-emerald-400 border-emerald-800{% else %}bg-neutral-900 text-neutral-600 border-neutral-800{% endif %}">
+                    4. Selesai
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="space-y-2 border-t border-neutral-800 pt-4 text-neutral-300">
+                <div class="flex justify-between">
+                    <span class="text-neutral-500">Penerima:</span>
+                    <span>{{ order.customer_name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-neutral-500">Telepon:</span>
+                    <span>{{ order.customer_phone }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-neutral-500">Total Tagihan:</span>
+                    <span class="font-bold text-neutral-100">Rp {{ order.total_amount|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-neutral-500">Metode Bayar:</span>
+                    <span>{{ order.get_payment_method_display }}</span>
+                </div>
+            </div>
+
+            <!-- Ordered Items List -->
+            <div class="border border-neutral-800 rounded p-3 bg-neutral-950 space-y-1">
+                <p class="text-neutral-400 font-semibold mb-2">Item Dipesan:</p>
+                {% for item in order.items.all %}
+                    <div class="flex justify-between text-neutral-300">
+                        <span>{{ item.quantity }}x {{ item.product_name }}</span>
+                        <span>Rp {{ item.subtotal|floatformat:0 }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
